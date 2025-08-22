@@ -146,10 +146,10 @@
 
             const base = cpr * ratti;
             const tech_fee = 0.02 * sp;
-            const rto = 0.3 * 0.04 * (base + material_cost_for_price_to_be_told + 0.5 * 0.04 * box_cost);
+            const rto = 0.3 * 0.04 * (base + material_cost_for_price_to_be_told) + (0.5 * 0.04 * box_cost);
             const inner_sum = base + box_cost + shipping_cost + tech_fee + material_cost_for_price_to_be_told + rto;
             const price_to_be_told = 1.3 * inner_sum;
-            const commission = 0.5 * (sp - price_to_be_told);
+            const commission = 0.5 * (sp/1.03 - price_to_be_told);
 
             document.getElementById('result').innerHTML = `
                 Price to be Told: ${price_to_be_told.toFixed(2)}<br>
