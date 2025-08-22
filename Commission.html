@@ -74,8 +74,8 @@
                     <label for="add_on" class="block text-sm font-medium text-gray-700">Add-on Type</label>
                     <select id="add_on" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" onchange="toggleMaterialDropdown()">
                         <option value="loose">Loose</option>
-                        <option value="pendant">Pendant</option>
-                        <option value="ring">Ring</option>
+                        <!-- <option value="pendant">Pendant</option>
+                        <option value="ring">Ring</option> -->
                     </select>
                 </div>
                 <div id="material_container" class="hidden">
@@ -88,7 +88,7 @@
                 <div>
                     <label for="gemstone" class="block text-sm font-medium text-gray-700">Gemstone Type</label>
                     <select id="gemstone" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                        <option value="premium">Premium</option>
+                        <!-- <option value="premium">Premium</option> -->
                         <option value="exclusive">Exclusive</option>
                     </select>
                 </div>
@@ -139,21 +139,21 @@
             }
 
             if (add_on !== 'loose') {
-                material_cost_for_price_to_be_told = material === 'silver' ? 750 : 500;
+                material_cost_for_price_to_be_told = material === 'silver' ? 750 : 500; // For price to be told
             } else {
                 material_cost_for_price_to_be_told = 0;
             }
 
             const base = cpr * ratti;
             const tech_fee = 0.02 * sp;
-            const rto = 0.3 * 0.04 * (base + material_cost_for_price_to_be_told) + (0.5 * 0.04 * box_cost);
+            const rto = 0.3 * 0.04 * (base + material_cost_for_price_to_be_told) + 0.5 * 0.04 * (box_cost);
             const inner_sum = base + box_cost + shipping_cost + tech_fee + material_cost_for_price_to_be_told + rto;
             const price_to_be_told = 1.3 * inner_sum;
             const commission = 0.5 * (sp/1.03 - price_to_be_told);
 
             document.getElementById('result').innerHTML = `
-                Price to be Told: ${price_to_be_told.toFixed(2)}<br>
-                Commission: ${commission.toFixed(2)}
+            Price to be told to Astrologer: ${price_to_be_told.toFixed(2)}
+            Commission: ${commission.toFixed(2)}
             `;
         }
 

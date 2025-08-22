@@ -70,7 +70,7 @@
                     <label for="add_on" class="block text-sm font-medium text-gray-700">Add-on Type</label>
                     <select id="add_on" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" onchange="toggleMaterialDropdown()">
                         <option value="loose">Loose</option>
-<!--                         <option value="pendant">Pendant</option>
+                        <!-- <option value="pendant">Pendant</option>
                         <option value="ring">Ring</option> -->
                     </select>
                 </div>
@@ -84,7 +84,7 @@
                 <div>
                     <label for="gemstone" class="block text-sm font-medium text-gray-700">Gemstone Type</label>
                     <select id="gemstone" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-<!--                         <option value="premium">Premium</option> -->
+                        <!-- <option value="premium">Premium</option> -->
                         <option value="exclusive">Exclusive</option>
                     </select>
                 </div>
@@ -109,6 +109,7 @@
             const ratti = parseFloat(document.getElementById('ratti').value);
             const add_on = document.getElementById('add_on').value;
             const material = document.getElementById('material').value;
+            const gemstoneType = document.getElementById('gemstone').value;
 
             if (isNaN(cpr) || isNaN(ratti)) {
                 document.getElementById('result').innerText = 'Please enter valid numbers for Cost per Ratti and Ratti';
@@ -120,12 +121,25 @@
                 return;
             }
 
+            let box_cost = 0;
+            let shipping_cost = 0;
             let material_cost = 0;
+            let material_cost_for_price_to_be_told = 0;
+
+            if (gemstoneType === 'premium') {
+                box_cost = 20;
+                shipping_cost = 66;
+            } else if (gemstoneType === 'exclusive') {
+                box_cost = 250;
+                shipping_cost = 1000;
+            }
 
             if (add_on !== 'loose') {
-                material_cost = material === 'silver' ? 900 : 750;
+                material_cost = material === 'silver' ? 900 : 750; // For selling price
+                material_cost_for_price_to_be_told = material === 'silver' ? 750 : 500; // For price to be told
             } else {
                 material_cost = 0;
+                material_cost_for_price_to_be_told = 0;
             }
 
             const base = cpr * ratti;
