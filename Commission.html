@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -56,15 +17,14 @@
     <div class="flex items-center justify-center flex-grow">
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
             <h1 class="text-2xl font-bold text-center mb-6">Commission Calculator</h1>
-<!--             <p class="text-center text-sm text-gray-600 mb-4">*If you don't know the cost per ratti, enter total cost and set ratti = 1</p> -->
             <div class="space-y-4">
                 <div>
                     <label for="sp" class="block text-sm font-medium text-gray-700">Selling Price</label>
                     <input type="number" id="sp" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter selling price" required>
                 </div>
                 <div>
-                    <label for="cpr" class="block text-sm font-medium text-gray-700">Cost per Ratti</label>
-                    <input type="number" id="cpr" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Cost told to Astrologer" required>
+                    <label for="p_told" class="block text-sm font-medium text-gray-700">Price Told to Astrologer</label>
+                    <input type="number" id="p_told" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter price told to astrologer" required>
                 </div>
                 <div>
                     <label for="ratti" class="block text-sm font-medium text-gray-700">Ratti</label>
@@ -110,14 +70,14 @@
 
         function calculatePrice() {
             const sp = parseFloat(document.getElementById('sp').value);
-            const cpr = parseFloat(document.getElementById('cpr').value);
+            const p_told = parseFloat(document.getElementById('p_told').value);
             const ratti = parseFloat(document.getElementById('ratti').value);
             const add_on = document.getElementById('add_on').value;
             const material = document.getElementById('material').value;
             const gemstoneType = document.getElementById('gemstone').value;
 
-            if (isNaN(sp) || isNaN(cpr) || isNaN(ratti)) {
-                document.getElementById('result').innerText = 'Please enter valid numbers for Selling Price, Cost per Ratti, and Ratti';
+            if (isNaN(sp) || isNaN(p_told) || isNaN(ratti)) {
+                document.getElementById('result').innerText = 'Please enter valid numbers for Selling Price, Price to be Told, and Ratti';
                 return;
             }
 
@@ -128,7 +88,7 @@
 
             let box_cost = 0;
             let shipping_cost = 0;
-            let material_cost_for_price_to_be_told = 0;
+            let material_cost = 0;
 
             if (gemstoneType === 'premium') {
                 box_cost = 20;
@@ -139,22 +99,27 @@
             }
 
             if (add_on !== 'loose') {
-                material_cost_for_price_to_be_told = material === 'silver' ? 750 : 500; // For price to be told
+                material_cost = material === 'silver' ? 750 : 500;
             } else {
-                material_cost_for_price_to_be_told = 0;
+                material_cost = 0;
             }
 
-            const base = cpr * ratti;
             const tech_fee = 0.02 * sp;
-            const rto = 0.3 * 0.04 * (base + material_cost_for_price_to_be_told) + 0.5 * 0.04 * (box_cost);
-            const inner_sum = base + box_cost + shipping_cost + tech_fee + material_cost_for_price_to_be_told + rto;
-            const price_to_be_told = 1.3 * inner_sum;
-            const commission = 0.5 * (sp/1.03 - price_to_be_told);
+            const inner_sum = p_told / 1.3;
+            const base = (inner_sum - (1.012 * material_cost) - (1.02 * box_cost) - shipping_cost - tech_fee) / 1.012;
+            
+            if (base < 0) {
+                document.getElementById('result').innerText = 'Calculated cost price is negative. Please check inputs.';
+                return;
+            }
+
+            const cpr = base / ratti;
+            const commission = 0.5 * (sp / 1.03 - p_told);
 
             document.getElementById('result').innerHTML = `
-            Cost Price to be told to Astrologer: ${price_to_be_told.toFixed(2)}\n
-            Cost Price per ratti to be told to Astrologer: ${price_to_be_told.toFixed(2)} \n
-            Commission: ${commission.toFixed(2)}
+                Maximum Cost Price of Gemstone: ${base.toFixed(2)}<br>
+                Cost per Ratti should be less than ${cpr.toFixed(2)}<br>
+                Commission: ${commission.toFixed(2)}
             `;
         }
 
